@@ -120,4 +120,19 @@ def run_pipeline():
 # =========================
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
+
+    import os
+
+    # Running inside GitHub Actions
+    if os.environ.get("GITHUB_ACTIONS") == "true":
+
+        print(pipeline())
+
+    # Running on Render/browser
+    else:
+
+        app.run(
+            host="0.0.0.0",
+            port=10000,
+            debug=False
+        )
