@@ -1,0 +1,9 @@
+# CI/CD workspace folders (IMPORTANT)
+agent_workspace_*/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# OS files
+.DS_Store
