@@ -21,6 +21,10 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Run Main Pipeline
+      - name: Install Flask
+        run: |
+          pip install flask
+
+      - name: Run Pipeline
         run: |
           python main.py
