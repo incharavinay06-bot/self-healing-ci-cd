@@ -25,34 +25,31 @@ app.add_middleware(
 
 class RepoRequest(BaseModel):
     repo_url: str
-    team_name: str
-    leader_name: str
 
 
 # =========================
-# BRANCH NAME FORMATTER
+# BRANCH GENERATOR
 # =========================
 
-def format_branch_name(team, leader):
+def generate_branch_name():
 
-    clean_team = re.sub(r'[^A-Z0-9]', '', team.upper().replace(" ", "_"))
-    clean_leader = re.sub(r'[^A-Z0-9]', '', leader.upper().replace(" ", "_"))
-
-    return f"{clean_team}_{clean_leader}_AI_Fix"
+    return "AI_AUTO_FIX_BRANCH"
 
 
 # =========================
-# FRONTEND PAGE
+# FRONTEND
 # =========================
 
 @app.get("/", response_class=HTMLResponse)
 async def home():
 
     return """
+
     <html>
 
     <head>
-        <title>CI/CD Healing Agent</title>
+
+        <title>Autonomous CI/CD Healing Agent</title>
 
         <style>
 
@@ -70,10 +67,10 @@ async def home():
             input{
                 width:100%;
                 padding:12px;
-                margin-top:10px;
-                margin-bottom:20px;
                 border-radius:8px;
                 border:none;
+                margin-top:10px;
+                margin-bottom:20px;
             }
 
             button{
@@ -86,28 +83,48 @@ async def home():
                 font-weight:bold;
             }
 
-            #output{
-                margin-top:30px;
+            .card{
                 background:#0f172a;
                 padding:20px;
-                border-radius:10px;
-                white-space:pre-wrap;
+                border-radius:12px;
+                margin-top:25px;
+            }
+
+            table{
+                width:100%;
+                border-collapse:collapse;
+                margin-top:15px;
+            }
+
+            th, td{
+                border-bottom:1px solid #334155;
+                padding:12px;
+                text-align:left;
+            }
+
+            th{
+                color:#38bdf8;
+            }
+
+            .success{
+                color:#4ade80;
+                font-weight:bold;
             }
 
         </style>
+
     </head>
 
     <body>
 
         <h1>Autonomous CI/CD Healing Agent</h1>
 
-        <h3>Real-Time Self Healing DevOps Pipeline</h3>
+        <h3>Real-Time Self-Healing DevOps Pipeline</h3>
 
-        <input id="repo" placeholder="GitHub Repository URL">
-
-        <input id="team" placeholder="Team Name">
-
-        <input id="leader" placeholder="Leader Name">
+        <input
+            id="repo"
+            placeholder="Enter GitHub Repository URL"
+        >
 
         <button onclick="runAgent()">
             RUN AGENT
@@ -120,7 +137,7 @@ async def home():
             async function runAgent(){
 
                 document.getElementById("output").innerHTML =
-                    "Running autonomous healing pipeline...";
+                    "<div class='card'>Running Autonomous Agent...</div>";
 
                 const response = await fetch('/run-agent', {
 
@@ -132,16 +149,101 @@ async def home():
 
                     body:JSON.stringify({
 
-                        repo_url:document.getElementById('repo').value,
-                        team_name:document.getElementById('team').value,
-                        leader_name:document.getElementById('leader').value
+                        repo_url:document.getElementById('repo').value
                     })
                 });
 
                 const data = await response.json();
 
-                document.getElementById("output").innerHTML =
-                    JSON.stringify(data, null, 2);
+                let fixesRows = "";
+
+                data.fixes.forEach(fix => {
+
+                    fixesRows += `
+                        <tr>
+                            <td>${fix.file}</td>
+                            <td>${fix.type}</td>
+                            <td>${fix.line}</td>
+                            <td>${fix.fix}</td>
+                            <td class="success">${fix.status}</td>
+                        </tr>
+                    `;
+                });
+
+                let timelineRows = "";
+
+                data.timeline.forEach(step => {
+
+                    timelineRows += `
+                        <tr>
+                            <td>${step.step}</td>
+                            <td>${step.time}</td>
+                            <td class="success">${step.status}</td>
+                        </tr>
+                    `;
+                });
+
+                document.getElementById("output").innerHTML = `
+
+                    <div class="card">
+
+                        <h2>Pipeline Summary</h2>
+
+                        <p><b>Repository:</b> ${data.repository}</p>
+
+                        <p><b>Branch:</b> ${data.branch}</p>
+
+                        <p>
+                            <b>Status:</b>
+                            <span class="success">${data.status}</span>
+                        </p>
+
+                        <p><b>Execution Time:</b> ${data.execution_time}</p>
+
+                        <p><b>Bugs Fixed:</b> ${data.bugs_fixed}</p>
+
+                        <p><b>AI Score:</b> ${data.score}</p>
+
+                    </div>
+
+                    <div class="card">
+
+                        <h2>Fixes Applied</h2>
+
+                        <table>
+
+                            <tr>
+                                <th>File</th>
+                                <th>Type</th>
+                                <th>Line</th>
+                                <th>Fix</th>
+                                <th>Status</th>
+                            </tr>
+
+                            ${fixesRows}
+
+                        </table>
+
+                    </div>
+
+                    <div class="card">
+
+                        <h2>CI/CD Timeline</h2>
+
+                        <table>
+
+                            <tr>
+                                <th>Step</th>
+                                <th>Time</th>
+                                <th>Status</th>
+                            </tr>
+
+                            ${timelineRows}
+
+                        </table>
+
+                    </div>
+                `;
             }
 
         </script>
@@ -149,6 +251,7 @@ async def home():
     </body>
 
     </html>
+
     """
 
 
@@ -163,10 +266,7 @@ async def run_agent(req: RepoRequest):
 
     workspace = os.path.abspath("agent_workspace")
 
-    branch_name = format_branch_name(
-        req.team_name,
-        req.leader_name
-    )
+    branch_name = generate_branch_name()
 
     bugs_fixed = []
 
@@ -174,7 +274,7 @@ async def run_agent(req: RepoRequest):
 
     status = "FAILED"
 
-    # CLEAN OLD RUN
+    # CLEAN PREVIOUS RUN
     if os.path.exists(workspace):
 
         shutil.rmtree(
@@ -191,7 +291,6 @@ async def run_agent(req: RepoRequest):
             "time": time.ctime()
         })
 
-        # CLONE REPO
         subprocess.run(
             ["git", "clone", req.repo_url, workspace],
             check=True,
@@ -201,26 +300,12 @@ async def run_agent(req: RepoRequest):
 
         timeline[-1]["status"] = "PASSED"
 
-        # CONFIGURE GIT
-        subprocess.run([
-            "git", "-C", workspace,
-            "config", "user.email",
-            "agent@ai.com"
-        ])
-
-        subprocess.run([
-            "git", "-C", workspace,
-            "config", "user.name",
-            "Autonomous AI Agent"
-        ])
-
-        # CREATE BRANCH
         subprocess.run([
             "git", "-C", workspace,
             "checkout", "-b", branch_name
         ])
 
-        # SIMULATED FIXES
+        # SIMULATED BUG FIXES
         test_cases = [
 
             {
@@ -271,7 +356,6 @@ async def run_agent(req: RepoRequest):
                 "type": bug["type"],
                 "line": bug["line"],
                 "fix": bug["fix"],
-                "commit_message": commit_msg,
                 "status": "FIXED"
             })
 
@@ -279,18 +363,10 @@ async def run_agent(req: RepoRequest):
 
         status = "PASSED"
 
-    except subprocess.CalledProcessError as e:
-
-        timeline.append({
-            "step": f"Git Error: {str(e)}",
-            "status": "FAILED",
-            "time": time.ctime()
-        })
-
     except Exception as e:
 
         timeline.append({
-            "step": f"Error: {str(e)}",
+            "step": str(e),
             "status": "FAILED",
             "time": time.ctime()
         })
@@ -325,12 +401,10 @@ if __name__ == "__main__":
 
     import uvicorn
 
-    # GitHub Actions Mode
     if os.environ.get("GITHUB_ACTIONS") == "true":
 
         print("CI/CD Pipeline Executed Successfully")
 
-    # Deployment Mode
     else:
 
         uvicorn.run(
