@@ -1,4 +1,4 @@
-name: Self-Healing CI/CD
+name: Autonomous CI/CD Healing Pipeline
 
 on:
   push:
@@ -13,18 +13,18 @@ jobs:
 
     steps:
 
-      - name: Checkout Code
+      - name: Checkout Repository
         uses: actions/checkout@v3
 
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
-      - name: Install Flask
+      - name: Install Dependencies
         run: |
-          pip install flask
+          pip install -r requirements.txt
 
-      - name: Run Pipeline
+      - name: Run Autonomous Agent
         run: |
           python main.py
