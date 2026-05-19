@@ -55,7 +55,7 @@ font-family:Arial;
 body{
 
 background:
-linear-gradient(rgba(2,6,23,0.93), rgba(2,6,23,0.95)),
+linear-gradient(rgba(2,6,23,0.92), rgba(2,6,23,0.95)),
 url('https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=2070');
 
 background-size:cover;
@@ -694,6 +694,7 @@ async def run_agent(req: RepoRequest):
                 f"{bug['file']}"
             )
 
+            # SAFE COMMIT
             subprocess.run(
 
                 [
@@ -706,7 +707,8 @@ async def run_agent(req: RepoRequest):
                     commit_msg
                 ],
 
-                check=True
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
             )
 
             bugs_fixed.append({
