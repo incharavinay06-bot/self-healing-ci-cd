@@ -741,24 +741,41 @@ async def run_agent(req: RepoRequest):
 
     execution_time = f"{time.time() - start_time:.2f}s"
 
-    return {
+    # =========================================
+# AI SCORE LOGIC
+# =========================================
 
-        "repository":req.repo_url,
+score = 100
 
-        "branch":branch_name,
+# Bonus for successful issue detection
+score += len(bugs_fixed) * 5
 
-        "status":status,
+# Penalty if pipeline fails
+if status == "FAILED":
+    score -= 60
 
-        "execution_time":execution_time,
+# Prevent negative score
+if score < 0:
+    score = 0
 
-        "bugs_fixed":len(bugs_fixed),
+return {
 
-        "score":110,
+    "repository":req.repo_url,
 
-        "fixes":bugs_fixed,
+    "branch":branch_name,
 
-        "timeline":timeline
-    }
+    "status":status,
+
+    "execution_time":execution_time,
+
+    "bugs_fixed":len(bugs_fixed),
+
+    "score":score,
+
+    "fixes":bugs_fixed,
+
+    "timeline":timeline
+}
 
 
 # =========================================
