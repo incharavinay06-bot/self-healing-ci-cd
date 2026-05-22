@@ -232,6 +232,10 @@ color:#fb923c;
 color:#38bdf8;
 }
 
+.red{
+color:#f87171;
+}
+
 table{
 
 width:100%;
@@ -277,6 +281,13 @@ display:inline-block;
 background:#14532d;
 
 color:#4ade80;
+}
+
+.failed{
+
+background:#7f1d1d;
+
+color:#f87171;
 }
 
 .loading{
@@ -447,7 +458,7 @@ timeline += `
 
 </div>
 
-<div class="status success">
+<div class="status ${step.status === 'FAILED' ? 'failed' : 'success'}">
 
 ${step.status}
 
@@ -493,11 +504,11 @@ ${data.bugs_fixed}
 
 <div class="card">
 
-<h2 class="blue">
+<h2 class="${data.status === 'FAILED' ? 'red' : 'blue'}">
 Pipeline Status
 </h2>
 
-<div class="big-number blue">
+<div class="big-number ${data.status === 'FAILED' ? 'red' : 'blue'}">
 
 ${data.status}
 
@@ -600,6 +611,8 @@ async def run_agent(req: RepoRequest):
 
     workspace = os.path.abspath("agent_workspace")
 
+    print("Workspace Location:", workspace)
+
     branch_name = "AI_AUTO_FIX_BRANCH"
 
     bugs_fixed = []
@@ -694,7 +707,6 @@ async def run_agent(req: RepoRequest):
                 f"{bug['file']}"
             )
 
-            # SAFE COMMIT
             subprocess.run(
 
                 [
@@ -742,40 +754,40 @@ async def run_agent(req: RepoRequest):
     execution_time = f"{time.time() - start_time:.2f}s"
 
     # =========================================
-# AI SCORE LOGIC
-# =========================================
+    # AI SCORE LOGIC
+    # =========================================
 
-score = 100
+    score = 100
 
-# Bonus for successful issue detection
-score += len(bugs_fixed) * 5
+    # Bonus for successful fixes
+    score += len(bugs_fixed) * 5
 
-# Penalty if pipeline fails
-if status == "FAILED":
-    score -= 60
+    # Penalty if pipeline fails
+    if status == "FAILED":
+        score -= 60
 
-# Prevent negative score
-if score < 0:
-    score = 0
+    # Prevent negative values
+    if score < 0:
+        score = 0
 
-return {
+    return {
 
-    "repository":req.repo_url,
+        "repository": req.repo_url,
 
-    "branch":branch_name,
+        "branch": branch_name,
 
-    "status":status,
+        "status": status,
 
-    "execution_time":execution_time,
+        "execution_time": execution_time,
 
-    "bugs_fixed":len(bugs_fixed),
+        "bugs_fixed": len(bugs_fixed),
 
-    "score":score,
+        "score": score,
 
-    "fixes":bugs_fixed,
+        "fixes": bugs_fixed,
 
-    "timeline":timeline
-}
+        "timeline": timeline
+    }
 
 
 # =========================================
