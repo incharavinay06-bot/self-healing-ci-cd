@@ -519,7 +519,7 @@ ${data.status}
 <div class="card">
 
 <h2 class="blue">
-AI Score
+Score
 </h2>
 
 <div class="big-number blue">
